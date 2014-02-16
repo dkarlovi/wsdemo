@@ -1,0 +1,63 @@
+#!/usr/bin/env node
+
+var app = require('http').createServer(),
+    io = require('socket.io').listen(app),
+    Cookies = require('cookies'),
+    backlog = [], length = 20, sessionName = 'PHPSESSID';
+
+io.set('log level', 1);
+app.listen(8000);
+
+io.set('authorization', function (request, accept) {
+    var cookie = new Cookies(request);
+    request.session = cookie.get(sessionName);
+    if (undefined === request.session) {
+        // TODO: validate session here (exists, contains user ID, etc)
+        return accept('Invalid session ID', false);
+    }
+    accept(null, true);
+});
+
+io.sockets.on('connection', function (socket) {
+    console.log('New client: '+ socket.handshake.session +'(' + socket.id + ')');
+    
+    // send the client its own socket ID on initial connection
+    socket.emit('self', {
+        session: socket.handshake.session,
+        socket: socket.id
+    });
+
+    // send chat backlog to new client
+    backlog.forEach(function(message) {
+        socket.emit('chat', message);
+    });
+    
+    // handle chat requests
+    socket.on('chat', function (data) {
+        var message = {
+            'author': {
+                session: socket.handshake.session,
+                socket: socket.id
+            },
+            'timestamp': Date.now(),
+            'text': data
+        };
+
+        // store message in length-capped backlog
+        backlog.push(message);
+        if (backlog.length > length) {
+            backlog.shift();
+        }
+
+        // send to self
+        socket.emit('chat', message);
+
+        // send to others
+        socket.broadcast.emit('chat', message);
+    });
+    
+    // handle range changes
+    socket.on('range', function(data){
+        socket.broadcast.emit('range', data);
+    })
+});

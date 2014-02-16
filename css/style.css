@@ -1,0 +1,42 @@
+input, button, #log {
+    border: 1px solid black;
+    margin: 0;
+    padding: 0;
+}
+#log {
+    height: 80%;
+    overflow: auto;
+    margin-bottom: 0.5em;
+    font-family: monospace;
+}
+input {
+    width: 89%;
+    font-size: 2em;
+}
+button {
+    width: 10%;
+    font-size: 2em;
+}
+abbr[title] {
+    border-bottom: 1px dotted;
+    cursor: help;
+}
+.range {
+    font-size: 2em;    
+}
+.time, .author, .text {
+    float: left;
+}
+.time {
+    color: gray;
+    margin-right: 0.5em;
+}
+.author {
+    font-weight: bold;
+}
+.self {
+    color: red;
+}
+.text {
+    margin-left: 0.5em;
+}
